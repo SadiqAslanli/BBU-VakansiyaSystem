@@ -1,0 +1,24 @@
+    html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+.app-layout {
+  min-height: 100vh;         
+  display: flex;
+  flex-direction: column;     
+}
+
+.content {
+  flex: 1;                    
+}
+
+.footer {
+  width: 100%;
+  height: 90px;
+  background-color: #134686;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

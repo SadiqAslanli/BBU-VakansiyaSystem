@@ -1,18 +1,7 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.app {
-  min-height: 100vh;
-  background-color: #f5f7fa;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .cv-list-page {
   min-height: 100vh;
   padding: 20px;
+  background-color: #f5f7fa;
 }
 
 .cv-page-header {
@@ -35,7 +24,7 @@
 
 .back-btn {
   padding: 10px 20px;
-  background-color: #757575;
+  background-color: #134686;
   color: white;
   border: none;
   border-radius: 6px;
@@ -46,7 +35,7 @@
 }
 
 .back-btn:hover {
-  background-color: #616161;
+  background-color: #185caf;
 }
 
 @media (max-width: 768px) {
