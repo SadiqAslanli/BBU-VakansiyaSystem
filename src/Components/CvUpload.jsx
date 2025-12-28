@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Css/cvUpload.css";
 import { Send } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
+
 
 
 const UploadedCv = () => {
@@ -76,6 +78,7 @@ const UploadedCv = () => {
   return (
     <div className="cv-upload-page">
       <div className="cv-upload-container">
+        <h2>Iş imkanı axtarırsan? O zaman CV-ni yüklə!</h2>
         <h2>CV Yüklə</h2>
 
         <input
@@ -117,7 +120,8 @@ const UploadedCv = () => {
 
         {showLoginWarning && (
           <div className="login-warning">
-            ⚠️ CV göndərmək üçün əvvəlcə daxil olmalısınız!
+                <TriangleAlert />
+ CV göndərmək üçün əvvəlcə daxil olmalısınız!
           </div>
         )}
       </div>

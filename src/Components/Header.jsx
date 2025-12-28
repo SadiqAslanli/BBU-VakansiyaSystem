@@ -2,24 +2,34 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../Css/header.css";
 
+/* ================= LOGIN ================= */
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const user = users.find(u => u.email === email && u.password === password);
+    try {
+      const res = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (user) {
-      const userData = { name: user.name, surname: user.surname, email: user.email };
-      localStorage.setItem("currentUser", JSON.stringify(userData));
-      onLogin(userData);
-    } else {
-      setError("Email və ya şifrə yanlışdır");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Email və ya şifrə yanlışdır");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      onLogin(data.user);
+    } catch {
+      setError("Server xətası");
     }
   };
 
@@ -27,35 +37,36 @@ const LoginPage = ({ onLogin }) => {
     <div className="auth-container">
       <div className="auth-form-box">
         <h2 className="auth-title">Daxil Ol</h2>
-        <div>
-          <div className="auth-input-group">
-            <label className="auth-label">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          <div className="auth-input-group">
-            <label className="auth-label">Şifrə</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          {error && <p className="auth-error">{error}</p>}
-          <button onClick={handleLogin} className="auth-button">Daxil Ol</button>
+
+        <div className="auth-input-group">
+          <label className="auth-label">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="auth-input"
+          />
         </div>
+
+        <div className="auth-input-group">
+          <label className="auth-label">Şifrə</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="auth-input"
+          />
+        </div>
+
+        {error && <p className="auth-error">{error}</p>}
+        <button onClick={handleLogin} className="auth-button">Daxil Ol</button>
       </div>
     </div>
   );
 };
 
-// Qeydiyyat Komponenti
-const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
+/* ================= REGISTER ================= */
+const RegisterPage = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -69,7 +80,7 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setError("");
 
     if (formData.password !== formData.confirmPassword) {
@@ -77,89 +88,64 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const userExists = users.find(u => u.email === formData.email);
+    try {
+      const res = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          surname: formData.surname,
+          email: formData.email,
+          password: formData.password
+        })
+      });
 
-    if (userExists) {
-      setError("Bu email artıq qeydiyyatdan keçib");
-      return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message);
+        return;
+      }
+
+      onSwitchToLogin();
+    } catch {
+      setError("Server xətası");
     }
-
-    const newUser = {
-      name: formData.name,
-      surname: formData.surname,
-      email: formData.email,
-      password: formData.password
-    };
-    users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
-
-    const userData = { name: newUser.name, surname: newUser.surname, email: newUser.email };
-    localStorage.setItem("currentUser", JSON.stringify(userData));
-    onRegister(userData);
   };
 
   return (
     <div className="auth-container">
       <div className="auth-form-box">
         <h2 className="auth-title">Qeydiyyat</h2>
-        <div>
-          <div className="auth-input-group">
-            <label className="auth-label">Ad</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          <div className="auth-input-group">
-            <label className="auth-label">Soyad</label>
-            <input
-              type="text"
-              value={formData.surname}
-              onChange={(e) => handleChange("surname", e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          <div className="auth-input-group">
-            <label className="auth-label">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          <div className="auth-input-group">
-            <label className="auth-label">Şifrə</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          <div className="auth-input-group">
-            <label className="auth-label">Şifrəni təsdiqlə</label>
-            <input
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => handleChange("confirmPassword", e.target.value)}
-              className="auth-input"
-            />
-          </div>
-          {error && <p className="auth-error">{error}</p>}
-          <button onClick={handleRegister} className="auth-button">Qeydiyyatdan keç</button>
-        </div>
+
+        {["name","surname","email","password","confirmPassword"].map((f) => (
+          <input
+            key={f}
+            type={f.includes("password") ? "password" : "text"}
+            value={formData[f]}
+            onChange={(e) => handleChange(f, e.target.value)}
+            className="auth-input"
+            placeholder={f}
+          />
+        ))}
+
+        {error && <p className="auth-error">{error}</p>}
+        <button onClick={handleRegister} className="auth-button">
+          Qeydiyyatdan keç
+        </button>
+
         <p className="auth-link-text">
-          Artıq hesabınız var? <span onClick={onSwitchToLogin} className="auth-link">Daxil olun</span>
+          Artıq hesabınız var?{" "}
+          <span onClick={onSwitchToLogin} className="auth-link">
+            Daxil olun
+          </span>
         </p>
       </div>
     </div>
   );
 };
 
+/* ================= HEADER ================= */
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -167,25 +153,10 @@ const Header = () => {
   const [authMode, setAuthMode] = useState("login");
 
   useEffect(() => {
-    const user = localStorage.getItem("currentUser");
-    if (user) {
-      setCurrentUser(JSON.parse(user));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (menuOpen) {
-      document.body.classList.add("menu-open");
-    } else {
-      document.body.classList.remove("menu-open");
-    }
-    return () => {
-      document.body.classList.remove("menu-open");
-    };
+    if (menuOpen) document.body.classList.add("menu-open");
+    else document.body.classList.remove("menu-open");
+    return () => document.body.classList.remove("menu-open");
   }, [menuOpen]);
-
-  const toggleMenu = () => setMenuOpen(prev => !prev);
-  const closeMenu = () => setMenuOpen(false);
 
   const handleLogin = (userData) => {
     setCurrentUser(userData);
@@ -193,15 +164,9 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem("token");
     setCurrentUser(null);
-    closeMenu();
-  };
-
-  const openAuth = (mode) => {
-    setAuthMode(mode);
-    setShowAuth(true);
-    closeMenu();
+    setMenuOpen(false);
   };
 
   return (
@@ -209,7 +174,9 @@ const Header = () => {
       <header className="header">
         <div className="header-container">
           <div className="logo">
-            <Link to="/"><img src="https://bbu.edu.az/images/30il.png" alt="BBU Logo" /></Link>
+            <Link to="/">
+              <img src="https://bbu.edu.az/images/30il.png" alt="BBU Logo" />
+            </Link>
             <span className="name">Bakı Biznes Universiteti</span>
           </div>
 
@@ -218,76 +185,57 @@ const Header = () => {
             <Link to="/uploaded">CV Göndər</Link>
             <Link to="/cv-page">Namizədlər</Link>
             <Link to="/mydocument">Mənim Sənədlərim</Link>
+
             {currentUser ? (
               <div className="user-info">
-                <span className="user-name">{currentUser.name} {currentUser.surname}</span>
-                <button onClick={handleLogout} className="logout-btn">Çıxış</button>
+                <span className="user-name">
+                  {currentUser.name} {currentUser.surname}
+                </span>
+                <button onClick={handleLogout} className="logout-btn">
+                  Çıxış
+                </button>
               </div>
             ) : (
-              <button onClick={() => openAuth("login")} className="login-btn">Daxil ol</button>
+              <button
+                onClick={() => setShowAuth(true)}
+                className="login-btn"
+              >
+                Daxil ol
+              </button>
             )}
           </nav>
 
           <div
             className={`burger ${menuOpen ? "open" : ""}`}
-            onClick={toggleMenu}
-            aria-label="Menu"
+            onClick={() => setMenuOpen(!menuOpen)}
           >
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span>
           </div>
         </div>
       </header>
 
-      <div
-        className={`menu-overlay ${menuOpen ? "show" : ""}`}
-        onClick={closeMenu}
-      />
-      
-      <nav className={`mobile-menu ${menuOpen ? "show" : ""}`}>
-        <Link to="/" onClick={closeMenu}>Ev</Link>
-        <Link to="/uploaded" onClick={closeMenu}>CV Göndər</Link>
-        <Link to="/cv-page" onClick={closeMenu}>Namizədlər</Link>
-        {currentUser ? (
-          <>
-            <span className="mobile-user-name">{currentUser.name} {currentUser.surname}</span>
-            <button onClick={handleLogout} className="mobile-logout-btn">Çıxış</button>
-          </>
-        ) : (
-          <button onClick={() => openAuth("login")} className="login-btn mobile-btn">Daxil ol</button>
-        )}
-      </nav>
-
       {showAuth && (
         <div className="auth-overlay">
-          <div onClick={(e) => e.stopPropagation()}>
-            <button 
-              onClick={() => setShowAuth(false)} 
-              className="auth-close-btn"
-              aria-label="Bağla"
-            >
-              ✕
-            </button>
-            {authMode === "login" ? (
-              <>
-                <LoginPage onLogin={handleLogin} />
-                <div className="auth-switch-mode">
-                  <button 
-                    onClick={() => setAuthMode("register")}
-                    className="auth-switch-btn"
-                  >
-                    Hesabınız yoxdur? Qeydiyyatdan keçin
-                  </button>
-                </div>
-              </>
-            ) : (
-              <RegisterPage 
-                onRegister={handleLogin}
-                onSwitchToLogin={() => setAuthMode("login")}
-              />
-            )}
-          </div>
+          <button
+            className="auth-close-btn"
+            onClick={() => setShowAuth(false)}
+          >
+            ✕
+          </button>
+
+          {authMode === "login" ? (
+            <>
+              <LoginPage onLogin={handleLogin} />
+              <button
+                className="auth-switch-btn"
+                onClick={() => setAuthMode("register")}
+              >
+                Hesabınız yoxdur? Qeydiyyat
+              </button>
+            </>
+          ) : (
+            <RegisterPage onSwitchToLogin={() => setAuthMode("login")} />
+          )}
         </div>
       )}
     </>
